@@ -1,0 +1,79 @@
+1. Download Apache kafka latest version
+2. Unzip the .tar file and rename the kafka-unzip dir to "kafka"
+3. Copy the "kafka" directory to the C drive of windows
+4. Configurations changes
+   a. Go to C:/kafka/config directory open zookeeper.properties file change the property dataDir to "c:/kafka/zookeeper-data"
+   b. Go to C:/kafka/config directory open server.properties file change the property "log.dirs" to "c:/kafka/kafka-logs"
+5. Start the zookeeper server by command below
+	.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+6. Start the kafka server in different command prompt
+	.\bin\windows\kafka-server-start.bat .\config\server.properties
+7. Create topic by sample command - Name of topic is test-topic and partition; zookeeper is running on 2181
+	.\bin\windows\kafka-topics.bat --create --topic test-topic -zookeeper localhost:2181 --replication-factor 1 --partitions 4
+
+======================== Let's test producer and consumer now ====================================
+
+8. Open command prompt and go to "C:/kafka", run below command to start the producer
+	.\bin\windows\kafka-console-producer.bat --broker-list localhost:9092 --topic test-topic
+9. Open command prompt and go to "C:/kafka", run below command to start the consumer
+	.\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic test-topic --from-beginning
+
+======================= Setting Up Multiple Kafka Brokers =======================================
+
+10. The first step is to add a new server.properties; We need to modify three properties to start up a multi broker set up.
+
+broker.id=<unique-broker-d>
+listeners=PLAINTEXT://localhost:<unique-port>
+log.dirs=/tmp/<unique-kafka-folder>
+auto.create.topics.enable=false
+
+
+Example:
+
+broker.id=1
+listeners=PLAINTEXT://localhost:9093
+log.dirs=/tmp/kafka-logs-1
+auto.create.topics.enable=false
+
+
+Provide the new server.properties thats added.
+
+	a. .\bin\windows\kafka-server-start.bat .\config\server-1.properties
+	b. .\bin\windows\kafka-server-start.bat .\config\server-2.properties
+	
+================= List the topics in a cluster =================================
+
+kafka-topics.bat --zookeeper localhost:2181 --list
+
+The below command can be used to describe all the topics.
+
+kafka-topics.bat --zookeeper localhost:2181 --describe
+
+The below command can be used to describe a specific topic.
+
+kafka-topics.bat --zookeeper localhost:2181 --describe --topic <topic-name>
+
+===================== Alter the min insync replica =======================================
+
+kafka-topics.bat --alter --zookeeper localhost:2181 --topic library-events --config min.insync.replicas=2
+
+===================== Delete a topic ===========================================
+
+kafka-topics.bat --zookeeper localhost:2181 --delete --topic <topic-name>
+
+=========================== How to view consumer groups =================================
+
+kafka-consumer-groups.bat --bootstrap-server localhost:9092 --list
+
+
+=========================== Consumer Groups and their Offset ======================================
+
+kafka-consumer-groups.bat --bootstrap-server localhost:9092 --describe --group console-consumer-27773
+
+============================ Viewing the Commit Log =====================================
+
+kafka-run-class.bat kafka.tools.DumpLogSegments --deep-iteration --files /tmp/kafka-logs/test-topic-0/00000000000000000000.log
+
+
+
+	
